@@ -1,21 +1,13 @@
-- name: install python-virtualenv
+- name: install python3-libvirt
   yum:
-    name: >-
-      {%- if ansible_distribution_major_version >= '8' -%} python3-virtualenv
-      {%- else -%} python-virtualenv
-      {%- endif -%}
-  tags: install
-
-# libvirt-devel is not necessary on the VirtualBox environment
-- name: install libvirt-devel
-  yum:
-    name: libvirt-devel
+    name: python3-libvirt
   when: VBMC_HYPERVISOR == 'libvirt'
   tags: install
 
+# --system-site-packages is to refer to python3-libvirt
 - name: create virtual env
   shell: |
-    virtualenv {{ VBMC_VENV_DIR }}
+    python3 -m venv --system-site-packages {{ VBMC_VENV_DIR }}
     . {{ VBMC_VENV_DIR }}/bin/activate
     pip install --upgrade pip
     pip install -e ./virtualbmc-vbox/
@@ -26,7 +18,7 @@
 - name: firewalld zone
   set_fact:
     FIREWALLD_OPTS: --zone=libvirt
-  when: VBMC_HYPERVISOR == 'libvirt' and ansible_distribution_major_version >= '8'
+  when: VBMC_HYPERVISOR == 'libvirt'
   tags: firewall
 
 - name: firewalld to allow 623/udp
